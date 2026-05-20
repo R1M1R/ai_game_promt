@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title data-i18n="appTitle">AI Indie Promo Kit</title>
+  <title>AI Indie Promo Kit</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -25,49 +25,45 @@
 
   <div id="sidebar-overlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
 
-  <aside id="history-sidebar" class="sidebar-panel glass" data-i18n-aria="projectHistory" aria-label="Project History">
+  <aside id="history-sidebar" class="sidebar-panel glass" aria-label="История проектов">
     <div class="p-4 border-b border-slate-800/80 shrink-0">
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between mb-2">
         <h2 class="section-title text-cyan-400/90 flex items-center gap-2">
-          <i class="fa-solid fa-clock-rotate-left text-cyan-400/80"></i>
-          <span data-i18n="projectHistory">Project History</span>
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          История проектов
         </h2>
-        <button type="button" id="close-sidebar-btn" class="btn btn-ghost btn-icon lg:hidden" data-i18n-aria="closeSidebar">
+        <button type="button" id="close-sidebar-btn" class="btn btn-ghost btn-icon lg:hidden" aria-label="Закрыть панель">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-      <div class="flex gap-2">
-        <button type="button" id="history-filter-all" class="btn btn-filter is-active" data-i18n="historyFilterAll">All</button>
-        <button type="button" id="history-filter-favorites" class="btn btn-filter btn-filter-fav" data-i18n="historyFilterFavorites">Favorites</button>
-      </div>
+      <p class="text-xs text-slate-500">Нажмите на запись, чтобы восстановить кит</p>
     </div>
     <div id="history-list" class="flex-1 overflow-y-auto p-3 space-y-2">
-      <p id="history-empty" class="text-slate-500 text-xs text-center py-10 px-3 leading-relaxed" data-i18n="historyEmpty">No kits yet.</p>
+      <p id="history-empty" class="text-slate-500 text-xs text-center py-10 px-3 leading-relaxed">
+        Пока нет наборов. Создайте первый промо-кит!
+      </p>
     </div>
   </aside>
 
-  <div id="main-wrapper" class="relative z-10 min-h-screen flex flex-col">
+  <div id="main-wrapper">
     <header class="app-header glass">
       <nav class="header-inner">
-        <button type="button" id="toggle-sidebar-btn" class="btn btn-ghost btn-icon" aria-expanded="false" aria-controls="history-sidebar" data-i18n-title="toggleHistory" data-i18n-aria="toggleHistory">
-          <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        <button type="button" id="toggle-sidebar-btn" class="btn btn-history" aria-expanded="false" aria-controls="history-sidebar" title="История проектов">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span class="hidden sm:inline">История</span>
         </button>
 
         <div class="header-brand">
           <div class="brand-icon">
             <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
           </div>
-          <h1 class="brand-title" data-i18n="appTitle">AI Indie Promo Kit</h1>
+          <h1 class="brand-title">AI Indie Promo Kit</h1>
         </div>
 
         <div class="header-actions">
-          <label for="lang-select" class="sr-only" data-i18n="language">Language</label>
-          <select id="lang-select" class="lang-select" aria-label="Language">
-            <option value="ru">Русский</option>
-          </select>
-          <button type="button" id="ai-settings-btn" class="btn btn-settings" data-i18n-title="aiSettings">
+          <button type="button" id="ai-settings-btn" class="btn btn-settings" title="Настройки ИИ">
             <i class="fa-solid fa-sliders"></i>
-            <span data-i18n="aiSettings">AI Settings</span>
+            <span class="hidden sm:inline">Настройки ИИ</span>
           </button>
         </div>
 
@@ -79,9 +75,9 @@
                 type="password"
                 id="api-key-input"
                 class="api-key-input"
-                data-i18n-placeholder="apiKeyPlaceholder"
                 placeholder="Ключ OpenAI API"
                 autocomplete="off"
+                aria-label="Ключ OpenAI API"
               />
             </div>
             <div class="api-key-help-wrap">
@@ -91,26 +87,20 @@
                 class="btn btn-help btn-icon"
                 aria-expanded="false"
                 aria-controls="api-key-help-panel"
-                data-i18n-title="apiKeyHelpTitle"
-                data-i18n-aria="apiKeyHelpTitle"
+                title="Как получить ключ API"
               >
                 <i class="fa-solid fa-circle-info"></i>
               </button>
-              <div id="api-key-help-panel" class="api-key-help-panel" role="region" aria-hidden="true">
+              <div id="api-key-help-panel" class="api-key-help-panel glass" role="region" aria-hidden="true">
                 <p class="api-key-help-title">
                   <i class="fa-solid fa-shield-halved text-cyan-400/80"></i>
-                  <span data-i18n="apiKeyHelpTitle">Как получить ключ API</span>
+                  Как получить ключ API
                 </p>
                 <p>
-                  <span data-i18n="apiKeyHelpWhere">Создайте ключ API в личном кабинете OpenAI:</span>
-                  <a
-                    href="https://platform.openai.com/api-keys"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="api-key-help-link"
-                  >platform.openai.com</a>
+                  Создайте ключ в личном кабинете OpenAI:
+                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" class="api-key-help-link">platform.openai.com</a>
                 </p>
-                <p class="api-key-help-privacy" data-i18n="apiKeyHelpPrivacy">
+                <p class="api-key-help-privacy">
                   Ключ сохраняется только в localStorage вашего браузера и передаётся исключительно на официальный API OpenAI. Мы не отправляем его на сторонние серверы.
                 </p>
               </div>
@@ -129,39 +119,39 @@
         <section class="glass glass-interactive rounded-2xl p-6 lg:p-7">
           <h2 class="section-title text-indigo-300/90 mb-6 flex items-center gap-2">
             <i class="fa-solid fa-pen-to-square text-indigo-400/70"></i>
-            <span data-i18n="defineGame">Define Your Game</span>
+            Опишите игру
           </h2>
           <form id="game-form" class="space-y-5" novalidate>
             <div class="field">
-              <input type="text" id="game-title" name="gameTitle" required maxlength="120" class="field-input" placeholder=" " data-i18n-placeholder="placeholderGameTitle" />
-              <label for="game-title" class="field-label" data-i18n="labelGameTitle">Game Title</label>
+              <input type="text" id="game-title" name="gameTitle" required maxlength="120" class="field-input" placeholder=" " />
+              <label for="game-title" class="field-label">Название игры</label>
             </div>
             <div class="field">
-              <input type="text" id="genre" name="genre" required maxlength="80" class="field-input" placeholder=" " data-i18n-placeholder="placeholderGenre" />
-              <label for="genre" class="field-label" data-i18n="labelGenre">Genre</label>
+              <input type="text" id="genre" name="genre" required maxlength="80" class="field-input" placeholder=" " />
+              <label for="genre" class="field-label">Жанр</label>
             </div>
             <div class="field">
               <select id="visual-style" name="visualStyle" required class="field-input field-select">
-                <option value="Pixel Art" data-i18n="stylePixelArt">Pixel Art</option>
-                <option value="Unreal Engine 5" data-i18n="styleUnreal">Unreal Engine 5</option>
-                <option value="Anime" data-i18n="styleAnime">Anime</option>
-                <option value="Dark Fantasy" data-i18n="styleDarkFantasy">Dark Fantasy</option>
-                <option value="Low Poly" data-i18n="styleLowPoly">Low Poly</option>
+                <option value="Pixel Art">Пиксель-арт</option>
+                <option value="Unreal Engine 5">Unreal Engine 5</option>
+                <option value="Anime">Аниме</option>
+                <option value="Dark Fantasy">Тёмное фэнтези</option>
+                <option value="Low Poly">Low Poly</option>
               </select>
-              <label for="visual-style" class="field-label" data-i18n="labelVisualStyle">Visual Style</label>
+              <label for="visual-style" class="field-label">Визуальный стиль</label>
             </div>
             <div class="field">
-              <textarea id="core-mechanic" name="coreMechanic" required rows="4" maxlength="2000" class="field-input field-textarea" placeholder=" " data-i18n-placeholder="placeholderCoreMechanic"></textarea>
-              <label for="core-mechanic" class="field-label" data-i18n="labelCoreMechanic">Core Mechanic</label>
+              <textarea id="core-mechanic" name="coreMechanic" required rows="4" maxlength="2000" class="field-input field-textarea" placeholder=" "></textarea>
+              <label for="core-mechanic" class="field-label">Основная механика</label>
             </div>
             <button type="submit" id="generate-btn" class="btn btn-primary" aria-live="polite">
-              <span class="btn-content" id="generate-btn-content">
+              <span class="btn-content">
                 <i class="fa-solid fa-bolt"></i>
-                <span data-i18n="generateKit">Generate Kit</span>
+                <span>Сгенерировать кит</span>
               </span>
-              <span class="btn-loading" id="generate-btn-loading">
+              <span class="btn-loading">
                 <span class="spinner" aria-hidden="true"></span>
-                <span data-i18n="synthesizing">Synthesizing...</span>
+                <span>Синтез...</span>
               </span>
             </button>
           </form>
@@ -171,38 +161,35 @@
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="section-title text-emerald-400/90 flex items-center gap-2 flex-wrap">
               <i class="fa-solid fa-box-open text-emerald-400/70"></i>
-              <span data-i18n="generatedKit">Generated Promo Kit</span>
+              Сгенерированный промо-кит
               <span id="output-game-title" class="text-slate-500 font-normal normal-case tracking-normal text-xs"></span>
             </h2>
             <button type="button" id="export-md-btn" class="btn btn-export">
               <i class="fa-solid fa-file-arrow-down"></i>
-              <span data-i18n="exportMarkdown">Export to Markdown</span>
+              <span>Экспорт в .md</span>
             </button>
           </div>
 
           <div id="output-grid" class="space-y-5 overflow-y-auto max-h-[calc(100vh-11rem)] pr-1">
             <article class="glass rounded-xl p-4 glass-interactive">
               <h3 class="section-title text-pink-400/80 mb-4 flex items-center gap-2 pb-3 border-b border-slate-800/80">
-                <i class="fa-solid fa-palette"></i>
-                <span data-i18n="sectionArt">Art — Midjourney</span>
+                <i class="fa-solid fa-palette"></i> Арт — Midjourney
               </h3>
               <div class="space-y-4">
-                <div class="output-card" data-field="mj_banner">
+                <div class="output-card">
                   <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelBanner">Banner</span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wide">Баннер</span>
                     <button type="button" class="btn btn-copy copy-btn" data-copy-target="mj_banner">
-                      <i class="fa-regular fa-copy"></i>
-                      <span data-i18n="copy">Copy</span>
+                      <i class="fa-regular fa-copy"></i> Копировать
                     </button>
                   </div>
                   <pre class="output-pre" id="val-mj_banner"></pre>
                 </div>
-                <div class="output-card" data-field="mj_menu">
+                <div class="output-card">
                   <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelMenuArt">Menu Art</span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wide">Меню</span>
                     <button type="button" class="btn btn-copy copy-btn" data-copy-target="mj_menu">
-                      <i class="fa-regular fa-copy"></i>
-                      <span data-i18n="copy">Copy</span>
+                      <i class="fa-regular fa-copy"></i> Копировать
                     </button>
                   </div>
                   <pre class="output-pre" id="val-mj_menu"></pre>
@@ -212,26 +199,23 @@
 
             <article class="glass rounded-xl p-4 glass-interactive">
               <h3 class="section-title text-cyan-400/80 mb-4 flex items-center gap-2 pb-3 border-b border-slate-800/80">
-                <i class="fa-solid fa-music"></i>
-                <span data-i18n="sectionMusic">Music — Suno</span>
+                <i class="fa-solid fa-music"></i> Музыка — Suno
               </h3>
               <div class="space-y-4">
-                <div class="output-card" data-field="suno_style">
+                <div class="output-card">
                   <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelStyle">Style</span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wide">Стиль</span>
                     <button type="button" class="btn btn-copy copy-btn" data-copy-target="suno_style">
-                      <i class="fa-regular fa-copy"></i>
-                      <span data-i18n="copy">Copy</span>
+                      <i class="fa-regular fa-copy"></i> Копировать
                     </button>
                   </div>
                   <pre class="output-pre" id="val-suno_style"></pre>
                 </div>
-                <div class="output-card" data-field="suno_lyrics">
+                <div class="output-card">
                   <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelLyrics">Lyrics</span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wide">Текст песни</span>
                     <button type="button" class="btn btn-copy copy-btn" data-copy-target="suno_lyrics">
-                      <i class="fa-regular fa-copy"></i>
-                      <span data-i18n="copy">Copy</span>
+                      <i class="fa-regular fa-copy"></i> Копировать
                     </button>
                   </div>
                   <pre class="output-pre" id="val-suno_lyrics"></pre>
@@ -241,26 +225,23 @@
 
             <article class="glass rounded-xl p-4 glass-interactive">
               <h3 class="section-title text-indigo-300/80 mb-4 flex items-center gap-2 pb-3 border-b border-slate-800/80">
-                <i class="fa-solid fa-bullhorn"></i>
-                <span data-i18n="sectionMarketing">Marketing — Steam & Social</span>
+                <i class="fa-solid fa-bullhorn"></i> Маркетинг — Steam и соцсети
               </h3>
               <div class="space-y-4">
-                <div class="output-card" data-field="steam_desc">
+                <div class="output-card">
                   <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelSteam">Steam Page</span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wide">Steam</span>
                     <button type="button" class="btn btn-copy copy-btn" data-copy-target="steam_desc">
-                      <i class="fa-regular fa-copy"></i>
-                      <span data-i18n="copy">Copy</span>
+                      <i class="fa-regular fa-copy"></i> Копировать
                     </button>
                   </div>
                   <pre class="output-pre" id="val-steam_desc"></pre>
                 </div>
-                <div class="output-card" data-field="twitter_post">
+                <div class="output-card">
                   <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelTwitter">Twitter / X</span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wide">Twitter / X</span>
                     <button type="button" class="btn btn-copy copy-btn" data-copy-target="twitter_post">
-                      <i class="fa-regular fa-copy"></i>
-                      <span data-i18n="copy">Copy</span>
+                      <i class="fa-regular fa-copy"></i> Копировать
                     </button>
                   </div>
                   <pre class="output-pre" id="val-twitter_post"></pre>
@@ -275,15 +256,15 @@
             <div class="w-14 h-14 mx-auto mb-5 rounded-2xl flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20">
               <i class="fa-solid fa-rocket text-2xl text-indigo-400/60"></i>
             </div>
-            <p class="text-sm text-slate-400" data-i18n="outputPlaceholderTitle">Your promo kit will appear here.</p>
-            <p class="text-xs text-slate-600 mt-2" data-i18n="outputPlaceholderHint">Fill the form and generate.</p>
+            <p class="text-sm text-slate-400">Здесь появится ваш промо-кит.</p>
+            <p class="text-xs text-slate-600 mt-2">Заполните форму и нажмите «Сгенерировать кит».</p>
           </div>
         </section>
       </div>
     </main>
 
     <footer class="text-center text-xs text-slate-600 py-5 border-t border-slate-800/60">
-      <span data-i18n="footer">AI Indie Promo Kit — API key stored locally only.</span>
+      AI Indie Promo Kit — ключ API хранится только локально в браузере.
     </footer>
   </div>
 
@@ -292,33 +273,36 @@
       <div class="flex items-center justify-between p-5 border-b border-slate-800/80">
         <h2 id="ai-settings-title" class="section-title text-rose-300/90 flex items-center gap-2">
           <i class="fa-solid fa-brain text-rose-400/70"></i>
-          <span data-i18n="modalAiSettings">AI Settings</span>
+          Настройки ИИ
         </h2>
-        <button type="button" id="ai-settings-close" class="btn btn-ghost btn-icon" data-i18n-aria="modalClose">
+        <button type="button" id="ai-settings-close" class="btn btn-ghost btn-icon" aria-label="Закрыть">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <div class="p-5 space-y-5">
         <div class="field">
-          <textarea id="custom-rules" rows="4" maxlength="3000" class="field-input field-textarea" placeholder=" " data-i18n-placeholder="placeholderCustomRules"></textarea>
-          <label for="custom-rules" class="field-label" data-i18n="labelCustomRules">Custom Rules</label>
+          <textarea id="custom-rules" rows="4" maxlength="3000" class="field-input field-textarea" placeholder=" "></textarea>
+          <label for="custom-rules" class="field-label">Память / глобальные правила</label>
         </div>
         <div>
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-medium text-slate-400 uppercase tracking-wide" data-i18n="labelTemperature">Creativity</span>
+            <span class="text-xs font-medium text-slate-400 uppercase tracking-wide">Креативность (Temperature)</span>
             <span id="temperature-value" class="text-sm font-semibold text-cyan-400 tabular-nums">0.9</span>
           </div>
           <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.85" class="neon-range" />
-          <p class="text-xs text-slate-500 mt-2" data-i18n="temperatureHint">Lower = focused. Higher = creative.</p>
+          <p class="text-xs text-slate-500 mt-2">Ниже — точнее. Выше — креативнее.</p>
         </div>
         <button type="button" id="ai-settings-save" class="btn btn-save-modal">
           <i class="fa-solid fa-floppy-disk"></i>
-          <span data-i18n="saveSettings">Save Settings</span>
+          <span>Сохранить настройки</span>
         </button>
       </div>
     </div>
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
