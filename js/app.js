@@ -1,5 +1,5 @@
 /**
- * AI Indie Promo Kit v4.0 — main application bootstrap & UI.
+ * AI Indie Promo Kit — UI bootstrap (single DOMContentLoaded init).
  */
 
 import {
@@ -18,6 +18,7 @@ import {
   getHistoryFilter,
   setHistoryFilter,
   sanitizeFilename,
+  DEFAULT_AI_SETTINGS,
 } from './storage.js';
 
 import {
@@ -25,13 +26,12 @@ import {
   applyTranslations,
   setLanguage,
   getLanguage,
+  getLocale,
   t,
   onLanguageChange,
 } from './i18n.js';
 
 import { generatePromoKit, buildMarkdown } from './api.js';
-
-// ——— State ———
 
 const state = {
   apiKey: '',
@@ -41,52 +41,65 @@ const state = {
   currentKit: null,
   currentInputs: null,
   currentAiSettings: null,
-  currentLanguage: 'en',
+  currentLanguage: 'ru',
   activeHistoryId: null,
   sidebarOpen: false,
   generating: false,
-  aiSettings: getAiSettings(),
+  aiSettings: { ...DEFAULT_AI_SETTINGS },
+  apiHelpOpen: false,
 };
 
-// ——— DOM ———
-
-const $ = (sel) => document.querySelector(sel);
-
+/** @type {Record<string, HTMLElement | null>} */
 const els = {};
 
-function cacheElements() {
-  els.apiKeyInput = $('#api-key-input');
-  els.apiKeyToggleBtn = $('#api-key-toggle-btn');
-  els.apiKeyBtnLabel = $('#api-key-btn-label');
-  els.langSelect = $('#lang-select');
-  els.aiSettingsBtn = $('#ai-settings-btn');
-  els.aiSettingsModal = $('#ai-settings-modal');
-  els.aiSettingsClose = $('#ai-settings-close');
-  els.aiSettingsSave = $('#ai-settings-save');
-  els.customRulesInput = $('#custom-rules');
-  els.temperatureInput = $('#temperature');
-  els.temperatureValue = $('#temperature-value');
-  els.toggleSidebarBtn = $('#toggle-sidebar-btn');
-  els.closeSidebarBtn = $('#close-sidebar-btn');
-  els.sidebar = $('#history-sidebar');
-  els.sidebarOverlay = $('#sidebar-overlay');
-  els.mainWrapper = $('#main-wrapper');
-  els.historyList = $('#history-list');
-  els.historyEmpty = $('#history-empty');
-  els.historyFilterAll = $('#history-filter-all');
-  els.historyFilterFav = $('#history-filter-favorites');
-  els.gameForm = $('#game-form');
-  els.generateBtn = $('#generate-btn');
-  els.generateBtnText = $('#generate-btn-text');
-  els.generateSpinner = $('#generate-spinner');
-  els.outputSection = $('#output-section');
-  els.outputPlaceholder = $('#output-placeholder');
-  els.outputGameTitle = $('#output-game-title');
-  els.exportMdBtn = $('#export-md-btn');
-  els.toastContainer = $('#toast-container');
+const VISUAL_STYLES = ['Pixel Art', 'Unreal Engine 5', 'Anime', 'Dark Fantasy', 'Low Poly'];
+
+function getEl(id) {
+  return document.getElementById(id);
 }
 
-// ——— Utilities ———
+function cacheElements() {
+  const ids = {
+    apiKeyInput: 'api-key-input',
+    apiKeyToggleBtn: 'api-key-toggle-btn',
+    apiKeyBtnLabel: 'api-key-btn-label',
+    apiKeyHelpToggle: 'api-key-help-toggle',
+    apiKeyHelpPanel: 'api-key-help-panel',
+    langSelect: 'lang-select',
+    aiSettingsBtn: 'ai-settings-btn',
+    aiSettingsModal: 'ai-settings-modal',
+    aiSettingsClose: 'ai-settings-close',
+    aiSettingsSave: 'ai-settings-save',
+    customRulesInput: 'custom-rules',
+    temperatureInput: 'temperature',
+    temperatureValue: 'temperature-value',
+    toggleSidebarBtn: 'toggle-sidebar-btn',
+    closeSidebarBtn: 'close-sidebar-btn',
+    sidebar: 'history-sidebar',
+    sidebarOverlay: 'sidebar-overlay',
+    mainWrapper: 'main-wrapper',
+    historyList: 'history-list',
+    historyEmpty: 'history-empty',
+    historyFilterAll: 'history-filter-all',
+    historyFilterFav: 'history-filter-favorites',
+    gameForm: 'game-form',
+    generateBtn: 'generate-btn',
+    outputSection: 'output-section',
+    outputPlaceholder: 'output-placeholder',
+    outputGameTitle: 'output-game-title',
+    exportMdBtn: 'export-md-btn',
+    toastContainer: 'toast-container',
+  };
+
+  for (const [key, id] of Object.entries(ids)) {
+    els[key] = getEl(id);
+  }
+
+  const critical = ['toggle-sidebar-btn', 'ai-settings-btn', 'ai-settings-modal', 'history-sidebar'];
+  critical.forEach((id) => {
+    if (!getEl(id)) console.error(`[AIPK] Critical element missing: #${id}`);
+  });
+}
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -100,8 +113,7 @@ function isDesktop() {
 
 function formatDate(iso) {
   try {
-    const locale = getLanguage() === 'ru' ? 'ru-RU' : undefined;
-    return new Date(iso).toLocaleString(locale, {
+    return new Date(iso).toLocaleString(getLocale(), {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -116,64 +128,72 @@ function formatDate(iso) {
 // ——— Toast ———
 
 function showToast(message, type = 'success') {
+  if (!els.toastContainer) return;
+
   const toast = document.createElement('div');
   const isError = type === 'error';
-  toast.className = `toast-enter pointer-events-auto flex items-start gap-3 p-4 rounded-lg glass border ${
-    isError ? 'border-red-500/40 text-red-200' : 'border-green-500/40 text-green-200'
-  } shadow-lg`;
+  toast.className = `toast-enter pointer-events-auto flex items-start gap-3 p-4 rounded-xl glass border ${
+    isError ? 'border-red-500/30 text-red-100' : 'border-emerald-500/30 text-emerald-100'
+  }`;
   toast.innerHTML = `
-    <i class="fa-solid ${isError ? 'fa-circle-exclamation text-red-400' : 'fa-circle-check text-green-400'} mt-0.5"></i>
-    <p class="text-sm flex-1">${escapeHtml(message)}</p>
-    <button type="button" class="text-slate-500 hover:text-slate-300 shrink-0" data-i18n-aria="toastDismiss">
-      <i class="fa-solid fa-xmark"></i>
+    <i class="fa-solid ${isError ? 'fa-circle-exclamation text-red-400' : 'fa-circle-check text-emerald-400'} mt-0.5 shrink-0"></i>
+    <p class="text-sm flex-1 leading-snug">${escapeHtml(message)}</p>
+    <button type="button" class="btn btn-ghost btn-icon shrink-0 !w-8 !h-8 toast-dismiss" aria-label="${escapeHtml(t('toastDismiss'))}">
+      <i class="fa-solid fa-xmark text-xs"></i>
     </button>
   `;
+
   const dismiss = () => {
     toast.classList.remove('toast-enter');
     toast.classList.add('toast-exit');
-    setTimeout(() => toast.remove(), 300);
+    setTimeout(() => toast.remove(), 280);
   };
-  toast.querySelector('button').addEventListener('click', dismiss);
+
+  toast.querySelector('.toast-dismiss')?.addEventListener('click', dismiss);
   els.toastContainer.appendChild(toast);
-  applyTranslations();
   setTimeout(dismiss, 5000);
 }
 
 // ——— API Key ———
 
-function initApiKey() {
-  state.apiKey = getApiKey();
-  if (state.apiKey) {
-    els.apiKeyInput.value = state.apiKey;
-    lockApiKey();
-  }
-  updateApiKeyButtonLabel();
-}
-
 function updateApiKeyButtonLabel() {
-  els.apiKeyBtnLabel.textContent = state.apiKeyLocked ? t('apiKeyEdit') : t('apiKeySave');
+  if (els.apiKeyBtnLabel) {
+    els.apiKeyBtnLabel.textContent = state.apiKeyLocked ? t('apiKeyEdit') : t('apiKeySave');
+  }
 }
 
 function lockApiKey() {
   state.apiKeyLocked = true;
-  els.apiKeyInput.readOnly = true;
-  els.apiKeyInput.classList.add('opacity-70');
-  els.apiKeyToggleBtn.querySelector('i').className = 'fa-solid fa-pen mr-1';
+  if (els.apiKeyInput) els.apiKeyInput.readOnly = true;
+  const icon = els.apiKeyToggleBtn?.querySelector('i');
+  if (icon) icon.className = 'fa-solid fa-pen';
   updateApiKeyButtonLabel();
 }
 
 function unlockApiKey() {
   state.apiKeyLocked = false;
-  els.apiKeyInput.readOnly = false;
-  els.apiKeyInput.classList.remove('opacity-70');
-  els.apiKeyToggleBtn.querySelector('i').className = 'fa-solid fa-floppy-disk mr-1';
+  if (els.apiKeyInput) {
+    els.apiKeyInput.readOnly = false;
+    els.apiKeyInput.focus();
+    els.apiKeyInput.select();
+  }
+  const icon = els.apiKeyToggleBtn?.querySelector('i');
+  if (icon) icon.className = 'fa-solid fa-floppy-disk';
   updateApiKeyButtonLabel();
-  els.apiKeyInput.focus();
-  els.apiKeyInput.select();
+}
+
+function initApiKey() {
+  state.apiKey = getApiKey();
+  if (state.apiKey && els.apiKeyInput) {
+    els.apiKeyInput.value = state.apiKey;
+    lockApiKey();
+  } else {
+    updateApiKeyButtonLabel();
+  }
 }
 
 function saveApiKeyHandler() {
-  const key = els.apiKeyInput.value.trim();
+  const key = els.apiKeyInput?.value.trim() || '';
   if (!key) {
     showToast(t('toastApiKeyInvalid'), 'error');
     return;
@@ -187,54 +207,95 @@ function saveApiKeyHandler() {
   showToast(t('toastApiKeySaved'));
 }
 
-// ——— AI Settings Modal ———
+// ——— API key help panel ———
+
+function setApiKeyHelpOpen(open) {
+  state.apiHelpOpen = open;
+  els.apiKeyHelpPanel?.classList.toggle('is-open', open);
+  els.apiKeyHelpPanel?.setAttribute('aria-hidden', String(!open));
+  els.apiKeyHelpToggle?.setAttribute('aria-expanded', String(open));
+}
+
+function toggleApiKeyHelp() {
+  setApiKeyHelpOpen(!state.apiHelpOpen);
+}
+
+// ——— AI Settings modal ———
 
 function openAiSettingsModal() {
-  const settings = state.aiSettings;
-  els.customRulesInput.value = settings.customRules || '';
-  els.temperatureInput.value = settings.temperature;
-  els.temperatureValue.textContent = Number(settings.temperature).toFixed(1);
-  els.aiSettingsModal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+  const modal = els.aiSettingsModal || getEl('ai-settings-modal');
+  if (!modal) {
+    console.error('[AIPK] AI Settings modal not found');
+    return;
+  }
+
+  const rules = els.customRulesInput || getEl('custom-rules');
+  const temp = els.temperatureInput || getEl('temperature');
+  if (rules) rules.value = state.aiSettings.customRules || '';
+  if (temp) temp.value = String(state.aiSettings.temperature ?? 0.85);
+
+  syncTemperatureDisplay();
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
 }
 
 function closeAiSettingsModal() {
-  els.aiSettingsModal.classList.add('hidden');
-  document.body.style.overflow = '';
+  const modal = els.aiSettingsModal || getEl('ai-settings-modal');
+  if (!modal) return;
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
 }
 
 function saveAiSettingsFromModal() {
+  const tempInput = els.temperatureInput || getEl('temperature');
+  const rulesInput = els.customRulesInput || getEl('custom-rules');
+
+  let temp = parseFloat(tempInput?.value ?? '0.85');
+  if (Number.isNaN(temp)) temp = state.aiSettings.temperature ?? DEFAULT_AI_SETTINGS.temperature;
+  temp = Math.min(1, Math.max(0, temp));
+
   state.aiSettings = {
-    customRules: els.customRulesInput.value.trim(),
-    temperature: parseFloat(els.temperatureInput.value),
+    customRules: rulesInput?.value.trim() || '',
+    temperature: temp,
   };
   saveAiSettings(state.aiSettings);
+  if (tempInput) tempInput.value = String(temp);
+  syncTemperatureDisplay();
   closeAiSettingsModal();
   showToast(t('toastSettingsSaved'));
 }
 
 function syncTemperatureDisplay() {
-  els.temperatureValue.textContent = parseFloat(els.temperatureInput.value).toFixed(1);
+  const tempInput = els.temperatureInput || getEl('temperature');
+  const tempVal = els.temperatureValue || getEl('temperature-value');
+  if (tempVal && tempInput) {
+    tempVal.textContent = parseFloat(tempInput.value).toFixed(1);
+  }
 }
 
 // ——— Sidebar ———
 
 function applySidebarState() {
   const open = state.sidebarOpen;
-  els.sidebar.classList.toggle('closed', !open);
-  els.sidebar.classList.toggle('collapsed', !open);
-  els.sidebarOverlay.classList.toggle('opacity-0', !open || isDesktop());
-  els.sidebarOverlay.classList.toggle('invisible', !open || isDesktop());
-  els.sidebarOverlay.classList.toggle('pointer-events-none', !open || isDesktop());
-  els.sidebarOverlay.classList.toggle('opacity-100', open && !isDesktop());
-  els.sidebarOverlay.classList.toggle('visible', open && !isDesktop());
-  els.sidebarOverlay.setAttribute('aria-hidden', String(!open || isDesktop()));
+  const desktop = isDesktop();
+  const sidebar = els.sidebar || getEl('history-sidebar');
+  const overlay = els.sidebarOverlay || getEl('sidebar-overlay');
+  const toggleBtn = els.toggleSidebarBtn || getEl('toggle-sidebar-btn');
 
-  if (isDesktop() && open) {
-    els.mainWrapper.style.marginLeft = `${els.sidebar.offsetWidth}px`;
-  } else {
-    els.mainWrapper.style.marginLeft = '';
+  sidebar?.classList.toggle('is-open', open);
+  document.body.classList.toggle('sidebar-open', open && desktop);
+
+  if (desktop && open && sidebar) {
+    document.documentElement.style.setProperty('--sidebar-width', `${sidebar.offsetWidth}px`);
   }
+
+  const showOverlay = open && !desktop;
+  overlay?.classList.toggle('is-visible', showOverlay);
+  overlay?.setAttribute('aria-hidden', String(!showOverlay));
+
+  toggleBtn?.setAttribute('aria-expanded', String(open));
   setSidebarOpen(open);
 }
 
@@ -245,84 +306,55 @@ function toggleSidebar() {
 
 // ——— History ———
 
-function refreshHistory() {
-  state.history = loadHistory();
-  renderHistory();
-}
-
 function getFilteredHistory() {
-  if (state.historyFilter === 'favorites') {
-    return state.history.filter((h) => h.favorite);
-  }
-  return state.history;
+  return state.historyFilter === 'favorites'
+    ? state.history.filter((h) => h.favorite)
+    : state.history;
 }
 
 function updateHistoryFilterUI() {
-  els.historyFilterAll?.classList.toggle(
-    'bg-cyan-500/20',
-    state.historyFilter === 'all'
-  );
-  els.historyFilterAll?.classList.toggle('border-cyan-500/40', state.historyFilter === 'all');
-  els.historyFilterFav?.classList.toggle(
-    'bg-cyan-500/20',
-    state.historyFilter === 'favorites'
-  );
-  els.historyFilterFav?.classList.toggle(
-    'border-cyan-500/40',
-    state.historyFilter === 'favorites'
-  );
-}
-
-function renderHistory() {
-  const items = getFilteredHistory();
-  els.historyEmpty.classList.toggle('hidden', items.length > 0);
-
-  els.historyList.querySelectorAll('.history-item').forEach((el) => el.remove());
-
-  items.forEach((entry) => {
-    const row = document.createElement('div');
-    const isFav = Boolean(entry.favorite);
-    row.className = `history-item relative w-full rounded-lg glass glass-hover border border-slate-700/50 transition-all group ${
-      state.activeHistoryId === entry.id ? 'active' : ''
-    } ${isFav ? 'favorite' : ''}`;
-    row.dataset.id = entry.id;
-
-    row.innerHTML = `
-      <button type="button" class="history-load-btn w-full text-left p-3 pl-3 pr-16 pt-3 pb-3">
-        <p class="text-sm font-medium text-slate-200 truncate">${escapeHtml(entry.title)}</p>
-        <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(formatDate(entry.date))}</p>
-        <p class="text-xs text-cyan-500/70 mt-1 truncate">${escapeHtml(entry.inputs?.genre || '')}</p>
-      </button>
-      <button type="button" class="favorite-btn absolute top-2 right-9 p-1.5 rounded transition-all ${
-        isFav ? 'active opacity-100' : 'text-slate-500 hover:text-yellow-400 opacity-0 group-hover:opacity-100'
-      }" data-favorite-id="${entry.id}" data-i18n-title="${isFav ? 'removeFavorite' : 'addFavorite'}" aria-label="${t(isFav ? 'removeFavorite' : 'addFavorite')}">
-        <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-star text-xs"></i>
-      </button>
-      <button type="button" class="delete-history-btn absolute top-2 right-2 p-1.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all" data-delete-id="${entry.id}" data-i18n-title="deleteHistory" aria-label="${t('deleteHistory')}">
-        <i class="fa-solid fa-trash-can text-xs"></i>
-      </button>
-    `;
-
-    row.querySelector('.history-load-btn').addEventListener('click', () => loadHistoryEntry(entry));
-    row.querySelector('.favorite-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleToggleFavorite(entry.id);
-    });
-    row.querySelector('.delete-history-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleDeleteHistory(entry.id);
-    });
-
-    els.historyList.appendChild(row);
-  });
-
-  applyTranslations();
+  const allActive = state.historyFilter === 'all';
+  const favActive = state.historyFilter === 'favorites';
+  els.historyFilterAll?.classList.toggle('is-active', allActive);
+  els.historyFilterFav?.classList.toggle('is-active', favActive);
 }
 
 function setActiveHistory(id) {
   state.activeHistoryId = id;
-  document.querySelectorAll('.history-item').forEach((el) => {
-    el.classList.toggle('active', el.dataset.id === id);
+  els.historyList?.querySelectorAll('.history-item').forEach((el) => {
+    el.classList.toggle('is-active', el.dataset.id === id);
+  });
+}
+
+function renderHistory() {
+  if (!els.historyList) return;
+
+  const items = getFilteredHistory();
+  els.historyEmpty?.classList.toggle('hidden', items.length > 0);
+  els.historyList.querySelectorAll('.history-item').forEach((el) => el.remove());
+
+  items.forEach((entry) => {
+    const isFav = Boolean(entry.favorite);
+    const row = document.createElement('div');
+    row.className = `history-item glass relative group ${state.activeHistoryId === entry.id ? 'is-active' : ''} ${isFav ? 'is-favorite' : ''}`;
+    row.dataset.id = entry.id;
+
+    row.innerHTML = `
+      <button type="button" class="history-load-btn" data-id="${entry.id}">
+        <p class="text-sm font-medium text-slate-200 truncate">${escapeHtml(entry.title)}</p>
+        <p class="text-xs text-slate-500 mt-1">${escapeHtml(formatDate(entry.date))}</p>
+        <p class="text-xs text-cyan-500/60 mt-0.5 truncate">${escapeHtml(entry.inputs?.genre || '')}</p>
+      </button>
+      <div class="history-actions">
+        <button type="button" class="btn btn-history-icon btn-favorite ${isFav ? 'is-active' : ''}" data-action="favorite" data-id="${entry.id}" title="${escapeHtml(t(isFav ? 'removeFavorite' : 'addFavorite'))}">
+          <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-star text-xs"></i>
+        </button>
+        <button type="button" class="btn btn-history-icon btn-delete" data-action="delete" data-id="${entry.id}" title="${escapeHtml(t('deleteHistory'))}">
+          <i class="fa-solid fa-trash-can text-xs"></i>
+        </button>
+      </div>
+    `;
+    els.historyList.appendChild(row);
   });
 }
 
@@ -332,93 +364,131 @@ function loadHistoryEntry(entry) {
   state.currentAiSettings = entry.ai_settings || state.aiSettings;
   state.currentLanguage = entry.ai_settings?.language || getLanguage();
   setFormInputs(entry.inputs);
-  displayKit(entry.generated_json, entry.inputs.gameTitle);
+  displayKit(entry.generated_json, entry.inputs?.gameTitle);
   setActiveHistory(entry.id);
-  if (!isDesktop()) toggleSidebar();
+  if (!isDesktop()) {
+    state.sidebarOpen = false;
+    applySidebarState();
+  }
   showToast(t('toastLoaded', { title: entry.title }));
 }
 
-function handleDeleteHistory(id) {
-  state.history = deleteHistoryEntry(id);
-  if (state.activeHistoryId === id) state.activeHistoryId = null;
-  renderHistory();
-  showToast(t('toastDeleted'));
-}
+function handleHistoryListClick(e) {
+  const favBtn = e.target.closest('[data-action="favorite"]');
+  if (favBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = favBtn.dataset.id;
+    state.history = toggleFavorite(id);
+    const entry = state.history.find((h) => h.id === id);
+    renderHistory();
+    showToast(entry?.favorite ? t('toastFavoriteAdded') : t('toastFavoriteRemoved'));
+    return;
+  }
 
-function handleToggleFavorite(id) {
-  state.history = toggleFavorite(id);
-  const entry = state.history.find((h) => h.id === id);
-  renderHistory();
-  showToast(entry?.favorite ? t('toastFavoriteAdded') : t('toastFavoriteRemoved'));
+  const delBtn = e.target.closest('[data-action="delete"]');
+  if (delBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = delBtn.dataset.id;
+    state.history = deleteHistoryEntry(id);
+    if (state.activeHistoryId === id) state.activeHistoryId = null;
+    renderHistory();
+    showToast(t('toastDeleted'));
+    return;
+  }
+
+  const loadBtn = e.target.closest('.history-load-btn');
+  if (loadBtn) {
+    e.preventDefault();
+    const entry = state.history.find((h) => h.id === loadBtn.dataset.id);
+    if (entry) loadHistoryEntry(entry);
+  }
 }
 
 // ——— Form ———
 
 function getFormInputs() {
   return {
-    gameTitle: $('#game-title').value.trim(),
-    genre: $('#genre').value.trim(),
-    visualStyle: $('#visual-style').value,
-    coreMechanic: $('#core-mechanic').value.trim(),
+    gameTitle: getEl('game-title')?.value.trim() || '',
+    genre: getEl('genre')?.value.trim() || '',
+    visualStyle: getEl('visual-style')?.value || 'Pixel Art',
+    coreMechanic: getEl('core-mechanic')?.value.trim() || '',
   };
 }
 
 function setFormInputs(inputs) {
   if (!inputs) return;
-  $('#game-title').value = inputs.gameTitle || '';
-  $('#genre').value = inputs.genre || '';
-  $('#visual-style').value = inputs.visualStyle || 'Pixel Art';
-  $('#core-mechanic').value = inputs.coreMechanic || '';
+  const titleEl = getEl('game-title');
+  const genreEl = getEl('genre');
+  const styleEl = getEl('visual-style');
+  const mechanicEl = getEl('core-mechanic');
+  if (titleEl) titleEl.value = inputs.gameTitle || '';
+  if (genreEl) genreEl.value = inputs.genre || '';
+  if (styleEl) {
+    const v = inputs.visualStyle || 'Pixel Art';
+    styleEl.value = VISUAL_STYLES.includes(v) ? v : 'Pixel Art';
+  }
+  if (mechanicEl) mechanicEl.value = inputs.coreMechanic || '';
 }
 
 function setGenerating(isLoading) {
   state.generating = isLoading;
-  els.generateBtn.disabled = isLoading;
-  els.generateBtnText.classList.toggle('hidden', isLoading);
-  els.generateSpinner.classList.toggle('hidden', isLoading);
-  els.generateSpinner.classList.toggle('flex', isLoading);
+  const btn = els.generateBtn || getEl('generate-btn');
+  if (!btn) return;
+  btn.disabled = isLoading;
+  btn.classList.toggle('is-loading', isLoading);
+  btn.setAttribute('aria-busy', String(isLoading));
 }
-
-// ——— Output ———
 
 function displayKit(kit, title) {
   if (!kit) return;
   JSON_FIELDS.forEach((field) => {
-    const el = document.getElementById(`val-${field}`);
+    const el = getEl(`val-${field}`);
     if (el) el.textContent = kit[field] || '';
   });
-  els.outputGameTitle.textContent = title ? `— ${title}` : '';
-  els.outputSection.classList.remove('output-hidden');
-  els.outputPlaceholder.classList.add('hidden');
-  els.outputPlaceholder.classList.remove('xl:flex');
+  if (els.outputGameTitle) {
+    els.outputGameTitle.textContent = title ? `— ${title}` : '';
+  }
+  els.outputSection?.classList.remove('output-hidden');
+  els.outputPlaceholder?.classList.add('hidden');
+  els.outputPlaceholder?.classList.remove('xl:flex');
 }
 
 function hideOutput() {
-  els.outputSection.classList.add('output-hidden');
-  els.outputPlaceholder.classList.remove('hidden');
-  els.outputPlaceholder.classList.add('xl:flex');
+  els.outputSection?.classList.add('output-hidden');
+  els.outputPlaceholder?.classList.remove('hidden');
+  els.outputPlaceholder?.classList.add('xl:flex');
 }
-
-// ——— Copy ———
 
 async function copyToClipboard(text, btn) {
   try {
     await navigator.clipboard.writeText(text);
     btn.classList.add('copied');
     const icon = btn.querySelector('i');
-    const orig = icon.className;
-    icon.className = 'fa-solid fa-check';
+    const orig = icon?.className;
+    if (icon) icon.className = 'fa-solid fa-check';
     showToast(t('toastCopied'));
     setTimeout(() => {
       btn.classList.remove('copied');
-      icon.className = orig;
+      if (icon && orig) icon.className = orig;
     }, 2000);
   } catch {
     showToast(t('toastCopyFailed'), 'error');
   }
 }
 
-// ——— Export ———
+function handleOutputClick(e) {
+  const copyBtn = e.target.closest('.copy-btn');
+  if (!copyBtn) return;
+  e.preventDefault();
+  const field = copyBtn.dataset.copyTarget;
+  const text =
+    state.currentKit?.[field] ||
+    getEl(`val-${field}`)?.textContent ||
+    '';
+  if (text) copyToClipboard(text, copyBtn);
+}
 
 function downloadMarkdown() {
   if (!state.currentKit) {
@@ -439,12 +509,10 @@ function downloadMarkdown() {
   a.download = filename;
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
+  a.remove();
   URL.revokeObjectURL(url);
   showToast(t('toastDownloaded', { filename }));
 }
-
-// ——— Generate ———
 
 async function handleGenerate(e) {
   e.preventDefault();
@@ -456,128 +524,196 @@ async function handleGenerate(e) {
     return;
   }
 
-  const apiKey = state.apiKey || els.apiKeyInput.value.trim();
+  const apiKey = state.apiKey || els.apiKeyInput?.value.trim() || '';
   if (!apiKey) {
     showToast(t('toastApiKeyRequired'), 'error');
     unlockApiKey();
     return;
   }
 
-  const language = getLanguage();
-  const aiSettings = state.aiSettings;
-
   setGenerating(true);
   try {
     const kit = await generatePromoKit({
       apiKey,
       inputs,
-      aiSettings,
-      language,
+      aiSettings: state.aiSettings,
+      language: getLanguage(),
     });
 
     state.currentKit = kit;
     state.currentInputs = inputs;
-    state.currentAiSettings = { ...aiSettings, language };
-    state.currentLanguage = language;
+    state.currentAiSettings = { ...state.aiSettings, language: getLanguage() };
+    state.currentLanguage = getLanguage();
 
     displayKit(kit, inputs.gameTitle);
 
     const entry = createHistoryEntry({
       inputs,
       generatedJson: kit,
-      aiSettings,
-      language,
+      aiSettings: state.aiSettings,
+      language: getLanguage(),
     });
     state.history = addHistoryEntry(entry);
     renderHistory();
     setActiveHistory(entry.id);
-
     showToast(t('toastGenerated'));
   } catch (err) {
-    console.error(err);
+    console.error('[AIPK]', err);
     showToast(err.message || t('toastGenerationFailed'), 'error');
   } finally {
     setGenerating(false);
   }
 }
 
-// ——— i18n hooks ———
-
 function onLangChanged() {
   updateApiKeyButtonLabel();
+  applyTranslations();
+  updateHistoryFilterUI();
   renderHistory();
+  if (state.currentKit && state.currentInputs) {
+    displayKit(state.currentKit, state.currentInputs.gameTitle);
+  }
 }
 
-// ——— Events ———
+function initFloatingLabels() {
+  document.querySelectorAll('.field-input').forEach((input) => {
+    if (input.value) input.classList.add('has-value');
+  });
+}
 
-function bindEvents() {
-  els.apiKeyToggleBtn.addEventListener('click', () => {
+/**
+ * Global click delegation — survives re-renders and fixes missed direct bindings.
+ */
+function handleDocumentClick(e) {
+  if (e.target.closest('#toggle-sidebar-btn')) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleSidebar();
+    return;
+  }
+
+  if (e.target.closest('#close-sidebar-btn')) {
+    e.preventDefault();
+    if (state.sidebarOpen) toggleSidebar();
+    return;
+  }
+
+  if (e.target.closest('#sidebar-overlay')) {
+    if (state.sidebarOpen) toggleSidebar();
+    return;
+  }
+
+  if (e.target.closest('#ai-settings-btn')) {
+    e.preventDefault();
+    e.stopPropagation();
+    openAiSettingsModal();
+    return;
+  }
+
+  if (e.target.closest('#ai-settings-close')) {
+    e.preventDefault();
+    closeAiSettingsModal();
+    return;
+  }
+
+  if (e.target.closest('#ai-settings-save')) {
+    e.preventDefault();
+    saveAiSettingsFromModal();
+    return;
+  }
+
+  const modal = els.aiSettingsModal || getEl('ai-settings-modal');
+  if (modal?.classList.contains('is-open') && e.target === modal) {
+    closeAiSettingsModal();
+    return;
+  }
+
+  if (e.target.closest('#api-key-help-toggle')) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleApiKeyHelp();
+    return;
+  }
+
+  if (
+    state.apiHelpOpen &&
+    !e.target.closest('.api-key-help-wrap') &&
+    !e.target.closest('#api-key-help-panel')
+  ) {
+    setApiKeyHelpOpen(false);
+  }
+
+  if (e.target.closest('#api-key-toggle-btn')) {
+    e.preventDefault();
     if (state.apiKeyLocked) unlockApiKey();
     else saveApiKeyHandler();
-  });
+    return;
+  }
 
-  els.langSelect.addEventListener('change', (e) => {
-    setLanguage(e.target.value);
-  });
+  if (e.target.closest('#export-md-btn')) {
+    e.preventDefault();
+    downloadMarkdown();
+    return;
+  }
 
-  els.aiSettingsBtn.addEventListener('click', openAiSettingsModal);
-  els.aiSettingsClose.addEventListener('click', closeAiSettingsModal);
-  els.aiSettingsSave.addEventListener('click', saveAiSettingsFromModal);
-
-  els.aiSettingsModal.addEventListener('click', (e) => {
-    if (e.target === els.aiSettingsModal) closeAiSettingsModal();
-  });
-
-  els.temperatureInput.addEventListener('input', syncTemperatureDisplay);
-
-  els.toggleSidebarBtn.addEventListener('click', toggleSidebar);
-  els.closeSidebarBtn.addEventListener('click', () => {
-    if (state.sidebarOpen) toggleSidebar();
-  });
-  els.sidebarOverlay.addEventListener('click', () => {
-    if (state.sidebarOpen) toggleSidebar();
-  });
-
-  els.historyFilterAll?.addEventListener('click', () => {
+  if (e.target.closest('#history-filter-all')) {
+    e.preventDefault();
     state.historyFilter = 'all';
     setHistoryFilter('all');
     updateHistoryFilterUI();
     renderHistory();
-  });
+    return;
+  }
 
-  els.historyFilterFav?.addEventListener('click', () => {
+  if (e.target.closest('#history-filter-favorites')) {
+    e.preventDefault();
     state.historyFilter = 'favorites';
     setHistoryFilter('favorites');
     updateHistoryFilterUI();
     renderHistory();
+    return;
+  }
+}
+
+function bindDirectEvents() {
+  els.langSelect?.addEventListener('change', (e) => {
+    setLanguage(e.target.value);
   });
 
-  els.gameForm.addEventListener('submit', handleGenerate);
-  els.exportMdBtn.addEventListener('click', downloadMarkdown);
+  els.temperatureInput?.addEventListener('input', syncTemperatureDisplay);
 
-  document.addEventListener('click', (e) => {
-    const copyBtn = e.target.closest('.copy-btn');
-    if (!copyBtn) return;
-    const field = copyBtn.dataset.copyTarget;
-    const text =
-      state.currentKit?.[field] ||
-      document.getElementById(`val-${field}`)?.textContent ||
-      '';
-    if (text) copyToClipboard(text, copyBtn);
-  });
+  els.gameForm?.addEventListener('submit', handleGenerate);
+
+  els.historyList?.addEventListener('click', handleHistoryListClick);
+
+  getEl('output-grid')?.addEventListener('click', handleOutputClick);
+
+  document.addEventListener('click', handleDocumentClick);
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !els.aiSettingsModal.classList.contains('hidden')) {
+    if (e.key !== 'Escape') return;
+
+    if (state.apiHelpOpen) {
+      setApiKeyHelpOpen(false);
+      return;
+    }
+
+    const modal = els.aiSettingsModal || getEl('ai-settings-modal');
+    if (modal?.classList.contains('is-open')) {
       closeAiSettingsModal();
+      return;
+    }
+
+    if (state.sidebarOpen) {
+      state.sidebarOpen = false;
+      applySidebarState();
     }
   });
 
   window.addEventListener('resize', applySidebarState);
 }
 
-// ——— Init ———
-
-function init() {
+function boot() {
   cacheElements();
   initI18n();
   initApiKey();
@@ -586,17 +722,29 @@ function init() {
   state.sidebarOpen = getSidebarOpen();
   state.historyFilter = getHistoryFilter();
   state.history = loadHistory();
+  state.currentLanguage = getLanguage();
 
-  els.temperatureInput.value = state.aiSettings.temperature;
-  syncTemperatureDisplay();
+  if (els.temperatureInput) {
+    els.temperatureInput.value = String(state.aiSettings.temperature);
+    syncTemperatureDisplay();
+  }
 
   updateHistoryFilterUI();
   renderHistory();
-  bindEvents();
+  bindDirectEvents();
   applySidebarState();
   hideOutput();
+  initFloatingLabels();
+  closeAiSettingsModal();
+  setApiKeyHelpOpen(false);
 
   onLanguageChange(onLangChanged);
 }
 
-init();
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    boot();
+  } catch (err) {
+    console.error('[AIPK] Initialization failed:', err);
+  }
+});

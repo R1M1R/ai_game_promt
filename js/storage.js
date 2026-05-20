@@ -72,24 +72,30 @@ export function getAiSettings() {
 }
 
 export function saveAiSettings(settings) {
+  let temp = Number(settings.temperature);
+  if (Number.isNaN(temp)) temp = DEFAULT_AI_SETTINGS.temperature;
+  temp = Math.min(1, Math.max(0, temp));
+
   saveJson(STORAGE_KEYS.aiSettings, {
     customRules: settings.customRules ?? '',
-    temperature:
-      typeof settings.temperature === 'number'
-        ? settings.temperature
-        : DEFAULT_AI_SETTINGS.temperature,
+    temperature: temp,
   });
 }
 
 // ——— Language ———
 
+const SUPPORTED_LANGS = ['en', 'ru', 'uk', 'es', 'de', 'fr'];
+
+export const DEFAULT_LANGUAGE = 'ru';
+
 export function getStoredLanguage() {
   const lang = localStorage.getItem(STORAGE_KEYS.language);
-  return lang === 'ru' ? 'ru' : 'en';
+  return SUPPORTED_LANGS.includes(lang) ? lang : DEFAULT_LANGUAGE;
 }
 
 export function setStoredLanguage(lang) {
-  localStorage.setItem(STORAGE_KEYS.language, lang === 'ru' ? 'ru' : 'en');
+  const code = SUPPORTED_LANGS.includes(lang) ? lang : DEFAULT_LANGUAGE;
+  localStorage.setItem(STORAGE_KEYS.language, code);
 }
 
 // ——— Sidebar ———
@@ -119,9 +125,21 @@ export function setHistoryFilter(filter) {
 
 // ——— History ———
 
+function normalizeHistoryEntry(entry) {
+  if (!entry || typeof entry !== 'object') return null;
+  return {
+    ...entry,
+    favorite: Boolean(entry.favorite),
+    inputs: entry.inputs || {},
+    generated_json: entry.generated_json || {},
+    ai_settings: entry.ai_settings || {},
+  };
+}
+
 export function loadHistory() {
   const items = loadJson(STORAGE_KEYS.history, []);
-  return Array.isArray(items) ? items : [];
+  if (!Array.isArray(items)) return [];
+  return items.map(normalizeHistoryEntry).filter(Boolean);
 }
 
 export function saveHistory(history) {

@@ -1,20 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title data-i18n="appTitle">AI Indie Promo Kit v4.0</title>
+  <title data-i18n="appTitle">AI Indie Promo Kit</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            neon: { cyan: '#22d3ee', pink: '#f472b6', green: '#4ade80' },
-          },
-          fontFamily: {
-            mono: ['"JetBrains Mono"', '"Fira Code"', 'Consolas', 'monospace'],
-          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
         },
       },
     };
@@ -22,126 +17,151 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body class="text-slate-200 antialiased grid-bg min-h-screen">
+<body class="app-bg grid-bg text-slate-200 antialiased">
   <div id="toast-container" class="fixed top-20 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none" aria-live="polite"></div>
 
-  <div id="sidebar-overlay" class="sidebar-overlay fixed inset-0 bg-black/60 z-40 lg:hidden opacity-0 invisible pointer-events-none" aria-hidden="true"></div>
+  <div id="sidebar-overlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
 
-  <aside id="history-sidebar" class="sidebar-panel fixed top-0 left-0 z-50 h-full w-72 lg:w-80 glass border-r border-cyan-500/20 flex flex-col closed" aria-label="Project History">
-    <div class="p-4 border-b border-cyan-500/20 shrink-0">
+  <aside id="history-sidebar" class="sidebar-panel glass" data-i18n-aria="projectHistory" aria-label="Project History">
+    <div class="p-4 border-b border-slate-800/80 shrink-0">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="font-display text-sm font-semibold text-cyan-400 tracking-wider uppercase">
-          <i class="fa-solid fa-clock-rotate-left mr-2"></i><span data-i18n="projectHistory">Project History</span>
+        <h2 class="section-title text-cyan-400/90 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-cyan-400/80"></i>
+          <span data-i18n="projectHistory">Project History</span>
         </h2>
-        <button type="button" id="close-sidebar-btn" class="lg:hidden p-2 rounded-lg hover:bg-slate-800/80 text-slate-400 hover:text-cyan-400 transition-colors" data-i18n-aria="closeSidebar">
+        <button type="button" id="close-sidebar-btn" class="btn btn-ghost btn-icon lg:hidden" data-i18n-aria="closeSidebar">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <div class="flex gap-2">
-        <button type="button" id="history-filter-all" class="flex-1 text-xs py-1.5 rounded-lg border bg-cyan-500/20 border-cyan-500/40 text-cyan-400 hover:text-cyan-400 transition-colors" data-i18n="historyFilterAll">All</button>
-        <button type="button" id="history-filter-favorites" class="flex-1 text-xs py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-yellow-400 transition-colors" data-i18n="historyFilterFavorites">Favorites</button>
+        <button type="button" id="history-filter-all" class="btn btn-filter is-active" data-i18n="historyFilterAll">All</button>
+        <button type="button" id="history-filter-favorites" class="btn btn-filter btn-filter-fav" data-i18n="historyFilterFavorites">Favorites</button>
       </div>
     </div>
     <div id="history-list" class="flex-1 overflow-y-auto p-3 space-y-2">
-      <p id="history-empty" class="text-slate-500 text-xs text-center py-8 px-2" data-i18n="historyEmpty">No kits generated yet. Create your first promo kit!</p>
+      <p id="history-empty" class="text-slate-500 text-xs text-center py-10 px-3 leading-relaxed" data-i18n="historyEmpty">No kits yet.</p>
     </div>
   </aside>
 
-  <div id="main-wrapper" class="min-h-screen flex flex-col transition-[margin] duration-300">
-    <header class="sticky top-0 z-30 glass border-b border-cyan-500/20 shrink-0">
-      <nav class="flex flex-wrap items-center gap-3 px-4 py-3 max-w-[1600px] mx-auto">
-        <button type="button" id="toggle-sidebar-btn" class="p-2.5 rounded-lg glass glass-hover text-cyan-400 shrink-0" data-i18n-title="toggleHistory" data-i18n-aria="toggleHistory">
-          <i class="fa-solid fa-bars"></i>
+  <div id="main-wrapper" class="relative z-10 min-h-screen flex flex-col">
+    <header class="app-header glass">
+      <nav class="header-inner">
+        <button type="button" id="toggle-sidebar-btn" class="btn btn-ghost btn-icon" aria-expanded="false" aria-controls="history-sidebar" data-i18n-title="toggleHistory" data-i18n-aria="toggleHistory">
+          <i class="fa-solid fa-bars" aria-hidden="true"></i>
         </button>
 
-        <div class="flex items-center gap-2 min-w-0 flex-1">
-          <i class="fa-solid fa-gamepad text-cyan-400 text-xl shrink-0"></i>
-          <h1 class="font-display text-lg sm:text-xl font-bold text-slate-100 neon-text truncate">
-            <span data-i18n="appTitle">AI Indie Promo Kit</span>
-            <span class="text-cyan-400" data-i18n="appVersion">v4.0</span>
-          </h1>
+        <div class="header-brand">
+          <div class="brand-icon">
+            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+          </div>
+          <h1 class="brand-title" data-i18n="appTitle">AI Indie Promo Kit</h1>
         </div>
 
-        <div class="flex items-center gap-2 shrink-0">
+        <div class="header-actions">
           <label for="lang-select" class="sr-only" data-i18n="language">Language</label>
-          <select id="lang-select" class="lang-select text-xs py-2 px-3 rounded-lg bg-slate-900/80 border border-slate-700 text-slate-200 neon-border cursor-pointer">
-            <option value="en">English</option>
+          <select id="lang-select" class="lang-select" aria-label="Language">
             <option value="ru">Русский</option>
           </select>
-          <button type="button" id="ai-settings-btn" class="px-3 py-2 rounded-lg glass glass-hover text-pink-400 text-xs border border-pink-500/30 hover:border-pink-400/50 transition-all whitespace-nowrap" data-i18n-title="aiSettings">
-            <i class="fa-solid fa-sliders mr-1"></i><span data-i18n="aiSettings">AI Settings</span>
+          <button type="button" id="ai-settings-btn" class="btn btn-settings" data-i18n-title="aiSettings">
+            <i class="fa-solid fa-sliders"></i>
+            <span data-i18n="aiSettings">AI Settings</span>
           </button>
         </div>
 
-        <div class="flex items-center gap-2 w-full sm:w-auto sm:min-w-[260px] lg:min-w-[300px]">
-          <div class="relative flex-1 flex items-center gap-2">
-            <i class="fa-solid fa-key text-slate-500 text-sm absolute left-3 pointer-events-none"></i>
-            <input
-              type="password"
-              id="api-key-input"
-              data-i18n-placeholder="apiKeyPlaceholder"
-              placeholder="OpenAI API Key"
-              class="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-900/80 border border-slate-700 text-slate-200 text-sm neon-border transition-all"
-              autocomplete="off"
-            />
-            <button type="button" id="api-key-toggle-btn" class="shrink-0 px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-xs font-medium hover:bg-cyan-500/30 transition-colors whitespace-nowrap">
-              <i class="fa-solid fa-floppy-disk mr-1"></i><span id="api-key-btn-label" data-i18n="apiKeySave">Save</span>
+        <div class="header-api">
+          <div class="header-api-row">
+            <div class="api-key-wrap">
+              <i class="fa-solid fa-key field-icon"></i>
+              <input
+                type="password"
+                id="api-key-input"
+                class="api-key-input"
+                data-i18n-placeholder="apiKeyPlaceholder"
+                placeholder="Ключ OpenAI API"
+                autocomplete="off"
+              />
+            </div>
+            <div class="api-key-help-wrap">
+              <button
+                type="button"
+                id="api-key-help-toggle"
+                class="btn btn-help btn-icon"
+                aria-expanded="false"
+                aria-controls="api-key-help-panel"
+                data-i18n-title="apiKeyHelpTitle"
+                data-i18n-aria="apiKeyHelpTitle"
+              >
+                <i class="fa-solid fa-circle-info"></i>
+              </button>
+              <div id="api-key-help-panel" class="api-key-help-panel" role="region" aria-hidden="true">
+                <p class="api-key-help-title">
+                  <i class="fa-solid fa-shield-halved text-cyan-400/80"></i>
+                  <span data-i18n="apiKeyHelpTitle">Как получить ключ API</span>
+                </p>
+                <p>
+                  <span data-i18n="apiKeyHelpWhere">Создайте ключ API в личном кабинете OpenAI:</span>
+                  <a
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="api-key-help-link"
+                  >platform.openai.com</a>
+                </p>
+                <p class="api-key-help-privacy" data-i18n="apiKeyHelpPrivacy">
+                  Ключ сохраняется только в localStorage вашего браузера и передаётся исключительно на официальный API OpenAI. Мы не отправляем его на сторонние серверы.
+                </p>
+              </div>
+            </div>
+            <button type="button" id="api-key-toggle-btn" class="btn btn-accent shrink-0">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span id="api-key-btn-label">Сохранить</span>
             </button>
           </div>
         </div>
       </nav>
     </header>
 
-    <main class="flex-1 p-4 lg:p-6 max-w-[1600px] mx-auto w-full">
-      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <section class="glass rounded-2xl p-5 lg:p-6 glass-hover">
-          <h2 class="font-display text-sm font-semibold text-pink-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-pen-to-square"></i><span data-i18n="defineGame">Define Your Game</span>
+    <main class="flex-1 p-4 lg:p-8 max-w-[1600px] mx-auto w-full">
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+        <section class="glass glass-interactive rounded-2xl p-6 lg:p-7">
+          <h2 class="section-title text-indigo-300/90 mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square text-indigo-400/70"></i>
+            <span data-i18n="defineGame">Define Your Game</span>
           </h2>
-          <form id="game-form" class="space-y-4">
-            <div>
-              <label for="game-title" class="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide" data-i18n="labelGameTitle">Game Title</label>
-              <input type="text" id="game-title" name="gameTitle" required maxlength="120"
-                data-i18n-placeholder="placeholderGameTitle"
-                class="w-full px-4 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-slate-100 neon-border transition-all" />
+          <form id="game-form" class="space-y-5" novalidate>
+            <div class="field">
+              <input type="text" id="game-title" name="gameTitle" required maxlength="120" class="field-input" placeholder=" " data-i18n-placeholder="placeholderGameTitle" />
+              <label for="game-title" class="field-label" data-i18n="labelGameTitle">Game Title</label>
             </div>
-            <div>
-              <label for="genre" class="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide" data-i18n="labelGenre">Genre</label>
-              <input type="text" id="genre" name="genre" required maxlength="80"
-                data-i18n-placeholder="placeholderGenre"
-                class="w-full px-4 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-slate-100 neon-border transition-all" />
+            <div class="field">
+              <input type="text" id="genre" name="genre" required maxlength="80" class="field-input" placeholder=" " data-i18n-placeholder="placeholderGenre" />
+              <label for="genre" class="field-label" data-i18n="labelGenre">Genre</label>
             </div>
-            <div>
-              <label for="visual-style" class="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide" data-i18n="labelVisualStyle">Visual Style</label>
-              <select id="visual-style" name="visualStyle" required
-                class="w-full px-4 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-slate-100 neon-border transition-all cursor-pointer">
+            <div class="field">
+              <select id="visual-style" name="visualStyle" required class="field-input field-select">
                 <option value="Pixel Art" data-i18n="stylePixelArt">Pixel Art</option>
                 <option value="Unreal Engine 5" data-i18n="styleUnreal">Unreal Engine 5</option>
                 <option value="Anime" data-i18n="styleAnime">Anime</option>
                 <option value="Dark Fantasy" data-i18n="styleDarkFantasy">Dark Fantasy</option>
                 <option value="Low Poly" data-i18n="styleLowPoly">Low Poly</option>
               </select>
+              <label for="visual-style" class="field-label" data-i18n="labelVisualStyle">Visual Style</label>
             </div>
-            <div>
-              <label for="core-mechanic" class="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide" data-i18n="labelCoreMechanic">Core Mechanic</label>
-              <textarea id="core-mechanic" name="coreMechanic" required rows="5" maxlength="2000"
-                data-i18n-placeholder="placeholderCoreMechanic"
-                class="w-full px-4 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-slate-100 neon-border transition-all resize-y min-h-[120px]"></textarea>
+            <div class="field">
+              <textarea id="core-mechanic" name="coreMechanic" required rows="4" maxlength="2000" class="field-input field-textarea" placeholder=" " data-i18n-placeholder="placeholderCoreMechanic"></textarea>
+              <label for="core-mechanic" class="field-label" data-i18n="labelCoreMechanic">Core Mechanic</label>
             </div>
-            <button type="submit" id="generate-btn"
-              class="w-full py-3 px-4 rounded-xl font-display font-semibold text-sm uppercase tracking-wider
-                bg-gradient-to-r from-cyan-600 to-cyan-500 text-slate-900
-                hover:from-cyan-500 hover:to-cyan-400
-                disabled:opacity-50 disabled:cursor-not-allowed
-                border border-cyan-400/50 shadow-lg shadow-cyan-500/20
-                transition-all flex items-center justify-center gap-2">
-              <span id="generate-btn-text"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> <span data-i18n="generateKit">Generate Kit</span></span>
-              <span id="generate-spinner" class="hidden items-center gap-2">
-                <span class="spinner w-5 h-5 inline-block"></span>
-                <span data-i18n="generating">Generating...</span>
+            <button type="submit" id="generate-btn" class="btn btn-primary" aria-live="polite">
+              <span class="btn-content" id="generate-btn-content">
+                <i class="fa-solid fa-bolt"></i>
+                <span data-i18n="generateKit">Generate Kit</span>
+              </span>
+              <span class="btn-loading" id="generate-btn-loading">
+                <span class="spinner" aria-hidden="true"></span>
+                <span data-i18n="synthesizing">Synthesizing...</span>
               </span>
             </button>
           </form>
@@ -149,143 +169,151 @@
 
         <section id="output-section" class="output-hidden flex flex-col gap-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="font-display text-sm font-semibold text-green-400 uppercase tracking-wider flex items-center gap-2">
-              <i class="fa-solid fa-box-open"></i><span data-i18n="generatedKit">Generated Promo Kit</span>
-              <span id="output-game-title" class="text-slate-400 font-normal normal-case text-xs ml-1"></span>
+            <h2 class="section-title text-emerald-400/90 flex items-center gap-2 flex-wrap">
+              <i class="fa-solid fa-box-open text-emerald-400/70"></i>
+              <span data-i18n="generatedKit">Generated Promo Kit</span>
+              <span id="output-game-title" class="text-slate-500 font-normal normal-case tracking-normal text-xs"></span>
             </h2>
-            <button type="button" id="export-md-btn"
-              class="px-4 py-2 rounded-lg glass glass-hover text-sm text-cyan-400 border border-cyan-500/30 hover:border-cyan-400/50 transition-all flex items-center gap-2">
-              <i class="fa-solid fa-file-arrow-down"></i> <span data-i18n="exportMarkdown">Export to Markdown</span>
+            <button type="button" id="export-md-btn" class="btn btn-export">
+              <i class="fa-solid fa-file-arrow-down"></i>
+              <span data-i18n="exportMarkdown">Export to Markdown</span>
             </button>
           </div>
 
-          <div id="output-grid" class="space-y-6 overflow-y-auto max-h-[calc(100vh-12rem)] pr-1">
-            <div class="glass rounded-xl p-4">
-              <h3 class="text-xs font-display text-pink-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-slate-700/50 pb-2">
-                <i class="fa-solid fa-palette"></i> <span data-i18n="sectionArt">Art — Midjourney</span>
+          <div id="output-grid" class="space-y-5 overflow-y-auto max-h-[calc(100vh-11rem)] pr-1">
+            <article class="glass rounded-xl p-4 glass-interactive">
+              <h3 class="section-title text-pink-400/80 mb-4 flex items-center gap-2 pb-3 border-b border-slate-800/80">
+                <i class="fa-solid fa-palette"></i>
+                <span data-i18n="sectionArt">Art — Midjourney</span>
               </h3>
-              <div class="space-y-3">
+              <div class="space-y-4">
                 <div class="output-card" data-field="mj_banner">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-slate-500 uppercase" data-i18n="labelBanner">Banner</span>
-                    <button type="button" class="copy-btn text-xs px-2 py-1 rounded border border-slate-600 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors" data-copy-target="mj_banner">
-                      <i class="fa-regular fa-copy"></i> <span data-i18n="copy">Copy</span>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelBanner">Banner</span>
+                    <button type="button" class="btn btn-copy copy-btn" data-copy-target="mj_banner">
+                      <i class="fa-regular fa-copy"></i>
+                      <span data-i18n="copy">Copy</span>
                     </button>
                   </div>
-                  <pre class="text-sm text-slate-300 whitespace-pre-wrap break-words bg-slate-900/50 rounded-lg p-3 border border-slate-800" id="val-mj_banner"></pre>
+                  <pre class="output-pre" id="val-mj_banner"></pre>
                 </div>
                 <div class="output-card" data-field="mj_menu">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-slate-500 uppercase" data-i18n="labelMenuArt">Menu Art</span>
-                    <button type="button" class="copy-btn text-xs px-2 py-1 rounded border border-slate-600 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors" data-copy-target="mj_menu">
-                      <i class="fa-regular fa-copy"></i> <span data-i18n="copy">Copy</span>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelMenuArt">Menu Art</span>
+                    <button type="button" class="btn btn-copy copy-btn" data-copy-target="mj_menu">
+                      <i class="fa-regular fa-copy"></i>
+                      <span data-i18n="copy">Copy</span>
                     </button>
                   </div>
-                  <pre class="text-sm text-slate-300 whitespace-pre-wrap break-words bg-slate-900/50 rounded-lg p-3 border border-slate-800" id="val-mj_menu"></pre>
+                  <pre class="output-pre" id="val-mj_menu"></pre>
                 </div>
               </div>
-            </div>
+            </article>
 
-            <div class="glass rounded-xl p-4">
-              <h3 class="text-xs font-display text-cyan-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-slate-700/50 pb-2">
-                <i class="fa-solid fa-music"></i> <span data-i18n="sectionMusic">Music — Suno</span>
+            <article class="glass rounded-xl p-4 glass-interactive">
+              <h3 class="section-title text-cyan-400/80 mb-4 flex items-center gap-2 pb-3 border-b border-slate-800/80">
+                <i class="fa-solid fa-music"></i>
+                <span data-i18n="sectionMusic">Music — Suno</span>
               </h3>
-              <div class="space-y-3">
+              <div class="space-y-4">
                 <div class="output-card" data-field="suno_style">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-slate-500 uppercase" data-i18n="labelStyle">Style</span>
-                    <button type="button" class="copy-btn text-xs px-2 py-1 rounded border border-slate-600 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors" data-copy-target="suno_style">
-                      <i class="fa-regular fa-copy"></i> <span data-i18n="copy">Copy</span>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelStyle">Style</span>
+                    <button type="button" class="btn btn-copy copy-btn" data-copy-target="suno_style">
+                      <i class="fa-regular fa-copy"></i>
+                      <span data-i18n="copy">Copy</span>
                     </button>
                   </div>
-                  <pre class="text-sm text-slate-300 whitespace-pre-wrap break-words bg-slate-900/50 rounded-lg p-3 border border-slate-800" id="val-suno_style"></pre>
+                  <pre class="output-pre" id="val-suno_style"></pre>
                 </div>
                 <div class="output-card" data-field="suno_lyrics">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-slate-500 uppercase" data-i18n="labelLyrics">Lyrics</span>
-                    <button type="button" class="copy-btn text-xs px-2 py-1 rounded border border-slate-600 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors" data-copy-target="suno_lyrics">
-                      <i class="fa-regular fa-copy"></i> <span data-i18n="copy">Copy</span>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelLyrics">Lyrics</span>
+                    <button type="button" class="btn btn-copy copy-btn" data-copy-target="suno_lyrics">
+                      <i class="fa-regular fa-copy"></i>
+                      <span data-i18n="copy">Copy</span>
                     </button>
                   </div>
-                  <pre class="text-sm text-slate-300 whitespace-pre-wrap break-words bg-slate-900/50 rounded-lg p-3 border border-slate-800" id="val-suno_lyrics"></pre>
+                  <pre class="output-pre" id="val-suno_lyrics"></pre>
                 </div>
               </div>
-            </div>
+            </article>
 
-            <div class="glass rounded-xl p-4">
-              <h3 class="text-xs font-display text-green-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-slate-700/50 pb-2">
-                <i class="fa-solid fa-bullhorn"></i> <span data-i18n="sectionMarketing">Marketing — Steam & Social</span>
+            <article class="glass rounded-xl p-4 glass-interactive">
+              <h3 class="section-title text-indigo-300/80 mb-4 flex items-center gap-2 pb-3 border-b border-slate-800/80">
+                <i class="fa-solid fa-bullhorn"></i>
+                <span data-i18n="sectionMarketing">Marketing — Steam & Social</span>
               </h3>
-              <div class="space-y-3">
+              <div class="space-y-4">
                 <div class="output-card" data-field="steam_desc">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-slate-500 uppercase" data-i18n="labelSteam">Steam Page</span>
-                    <button type="button" class="copy-btn text-xs px-2 py-1 rounded border border-slate-600 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors" data-copy-target="steam_desc">
-                      <i class="fa-regular fa-copy"></i> <span data-i18n="copy">Copy</span>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelSteam">Steam Page</span>
+                    <button type="button" class="btn btn-copy copy-btn" data-copy-target="steam_desc">
+                      <i class="fa-regular fa-copy"></i>
+                      <span data-i18n="copy">Copy</span>
                     </button>
                   </div>
-                  <pre class="text-sm text-slate-300 whitespace-pre-wrap break-words bg-slate-900/50 rounded-lg p-3 border border-slate-800" id="val-steam_desc"></pre>
+                  <pre class="output-pre" id="val-steam_desc"></pre>
                 </div>
                 <div class="output-card" data-field="twitter_post">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-slate-500 uppercase" data-i18n="labelTwitter">Twitter / X</span>
-                    <button type="button" class="copy-btn text-xs px-2 py-1 rounded border border-slate-600 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors" data-copy-target="twitter_post">
-                      <i class="fa-regular fa-copy"></i> <span data-i18n="copy">Copy</span>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="labelTwitter">Twitter / X</span>
+                    <button type="button" class="btn btn-copy copy-btn" data-copy-target="twitter_post">
+                      <i class="fa-regular fa-copy"></i>
+                      <span data-i18n="copy">Copy</span>
                     </button>
                   </div>
-                  <pre class="text-sm text-slate-300 whitespace-pre-wrap break-words bg-slate-900/50 rounded-lg p-3 border border-slate-800" id="val-twitter_post"></pre>
+                  <pre class="output-pre" id="val-twitter_post"></pre>
                 </div>
               </div>
-            </div>
+            </article>
           </div>
         </section>
 
-        <section id="output-placeholder" class="hidden xl:flex glass rounded-2xl p-8 items-center justify-center min-h-[320px] border-dashed border-2 border-slate-700/50">
-          <div class="text-center text-slate-500">
-            <i class="fa-solid fa-rocket text-4xl mb-4 text-slate-600"></i>
-            <p class="text-sm" data-i18n="outputPlaceholderTitle">Your generated promo kit will appear here.</p>
-            <p class="text-xs mt-2 text-slate-600" data-i18n="outputPlaceholderHint">Fill in the form and hit Generate Kit.</p>
+        <section id="output-placeholder" class="hidden xl:flex glass glass-interactive placeholder-panel rounded-2xl p-10 items-center justify-center">
+          <div class="text-center max-w-xs">
+            <div class="w-14 h-14 mx-auto mb-5 rounded-2xl flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20">
+              <i class="fa-solid fa-rocket text-2xl text-indigo-400/60"></i>
+            </div>
+            <p class="text-sm text-slate-400" data-i18n="outputPlaceholderTitle">Your promo kit will appear here.</p>
+            <p class="text-xs text-slate-600 mt-2" data-i18n="outputPlaceholderHint">Fill the form and generate.</p>
           </div>
         </section>
       </div>
     </main>
 
-    <footer class="text-center text-xs text-slate-600 py-4 border-t border-slate-800/50">
-      <span data-i18n="footer">AI Indie Promo Kit v4.0 — Built for indie devs. API key stored locally only.</span>
+    <footer class="text-center text-xs text-slate-600 py-5 border-t border-slate-800/60">
+      <span data-i18n="footer">AI Indie Promo Kit — API key stored locally only.</span>
     </footer>
   </div>
 
-  <!-- AI Settings Modal -->
-  <div id="ai-settings-modal" class="modal-overlay hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70" role="dialog" aria-modal="true" aria-labelledby="ai-settings-title">
-    <div class="modal-panel glass rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-pink-500/30 shadow-2xl shadow-pink-500/10">
-      <div class="flex items-center justify-between p-5 border-b border-slate-700/50">
-        <h2 id="ai-settings-title" class="font-display text-sm font-semibold text-pink-400 uppercase tracking-wider">
-          <i class="fa-solid fa-brain mr-2"></i><span data-i18n="modalAiSettings">AI Settings</span>
+  <div id="ai-settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="ai-settings-title">
+    <div class="modal-panel glass p-0">
+      <div class="flex items-center justify-between p-5 border-b border-slate-800/80">
+        <h2 id="ai-settings-title" class="section-title text-rose-300/90 flex items-center gap-2">
+          <i class="fa-solid fa-brain text-rose-400/70"></i>
+          <span data-i18n="modalAiSettings">AI Settings</span>
         </h2>
-        <button type="button" id="ai-settings-close" class="p-2 rounded-lg hover:bg-slate-800/80 text-slate-400 hover:text-pink-400 transition-colors" data-i18n-aria="modalClose">
+        <button type="button" id="ai-settings-close" class="btn btn-ghost btn-icon" data-i18n-aria="modalClose">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <div class="p-5 space-y-5">
-        <div>
-          <label for="custom-rules" class="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide" data-i18n="labelCustomRules">Custom Rules (AI Memory)</label>
-          <textarea id="custom-rules" rows="5" maxlength="3000"
-            data-i18n-placeholder="placeholderCustomRules"
-            class="w-full px-4 py-2.5 rounded-lg bg-slate-900/80 border border-slate-700 text-slate-100 neon-border transition-all resize-y min-h-[100px]"></textarea>
+        <div class="field">
+          <textarea id="custom-rules" rows="4" maxlength="3000" class="field-input field-textarea" placeholder=" " data-i18n-placeholder="placeholderCustomRules"></textarea>
+          <label for="custom-rules" class="field-label" data-i18n="labelCustomRules">Custom Rules</label>
         </div>
         <div>
           <div class="flex items-center justify-between mb-2">
-            <label for="temperature" class="text-xs text-slate-400 uppercase tracking-wide" data-i18n="labelTemperature">Creativity (Temperature)</label>
-            <span id="temperature-value" class="text-sm font-semibold text-cyan-400">0.9</span>
+            <span class="text-xs font-medium text-slate-400 uppercase tracking-wide" data-i18n="labelTemperature">Creativity</span>
+            <span id="temperature-value" class="text-sm font-semibold text-cyan-400 tabular-nums">0.9</span>
           </div>
-          <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.85" class="neon-range w-full" />
-          <p class="text-xs text-slate-500 mt-2" data-i18n="temperatureHint">Lower = more focused. Higher = more creative.</p>
+          <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.85" class="neon-range" />
+          <p class="text-xs text-slate-500 mt-2" data-i18n="temperatureHint">Lower = focused. Higher = creative.</p>
         </div>
-        <button type="button" id="ai-settings-save"
-          class="w-full py-3 rounded-xl font-display font-semibold text-sm uppercase tracking-wider
-            bg-gradient-to-r from-pink-600 to-pink-500 text-slate-900 hover:from-pink-500 hover:to-pink-400
-            border border-pink-400/50 transition-all">
-          <i class="fa-solid fa-floppy-disk mr-1"></i> <span data-i18n="saveSettings">Save Settings</span>
+        <button type="button" id="ai-settings-save" class="btn btn-save-modal">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span data-i18n="saveSettings">Save Settings</span>
         </button>
       </div>
     </div>
